@@ -1,14 +1,49 @@
-const app = require('./src/app');
+const express = require('express');
+const cors = require('cors');
+const path = require('path');
+const env = require('./config/config');
+const videoRoutes = require('./routes/videoRoutes');
+const { errorHandler, notFoundHandler } = require('./helpers/responseHelper');
 
-const PORT = Number(process.env.PORT) || 5000;
+const app = express();
 
-const server = app.listen(PORT, () => {
-  console.log(`Video API running on http://localhost:${PORT}`);
+app.set('trust proxy', 1);
+app.use(cors({
+  origin(origin, callback) {
+    if (!origin || env.clientOrigins.includes(origin.replace(/\/$/, ''))) {
+      return callback(null, true);
+    }
+    const error = new Error(`CORS blocked origin: ${origin}`);
+    error.status = 403;
+    return callback(error);
+  },
+}));
+app.use(express.json({ limit: env.jsonLimit }));
+app.use(express.urlencoded({ extended: true, limit: env.jsonLimit }));
+
+app.use('/videos', express.static(path.join(env.publicPath, 'videos'), {
+  acceptRanges: true,
+  maxAge: env.staticCache,
+}));
+app.use('/images', express.static(path.join(env.publicPath, 'images'), {
+  maxAge: env.staticCache,
+}));
+app.use('/thumbnails', express.static(path.join(env.publicPath, 'thumbnails'), {
+  maxAge: env.staticCache,
+}));
+
+app.get('/', (req, res) => res.json({ success: true, message: 'Video API is running' }));
+app.use(env.apiPrefix, videoRoutes);
+app.use(notFoundHandler);
+app.use(errorHandler);
+
+const server = app.listen(env.port, () => {
+  console.log(`Video API running on http://localhost:${env.port}`);
 });
 
 server.on('error', (error) => {
   if (error.code === 'EADDRINUSE') {
-    console.error(`Port ${PORT} is already in use. Stop the other backend process and retry.`);
+    console.error(`Port ${env.port} is already in use. Stop the other backend process and retry.`);
     process.exitCode = 1;
     return;
   }

@@ -5,16 +5,12 @@
   "main": "app.js",
   "scripts": {
     "start": "node app.js",
-    "dev": "node --watch --watch-path=src --watch-path=data app.js",
-    "test": "vitest run --globals"
+    "dev": "node --watch app.js"
   },
   "dependencies": {
     "cors": "^2.8.5",
+    "dotenv": "^17.4.2",
     "express": "^4.19.2",
     "express-rate-limit": "^8.5.2"
-  },
-  "devDependencies": {
-    "supertest": "^7.2.2",
-    "vitest": "^4.1.10"
   }
 }
