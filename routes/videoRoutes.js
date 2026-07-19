@@ -6,7 +6,7 @@ const {
 } = require('../controllers/videoController');
 const engagementLimiter = require('../middleware/engagementLimiter');
 
-const router = express.Router();
+const router = express.Router();  
 
 router.get('/videos', getVideos);
 router.post('/like', engagementLimiter, toggleLike);
